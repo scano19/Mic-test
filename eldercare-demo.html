@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElderCare AI - Demo Asistente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .config-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .config-panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .config-row label {
+            font-weight: 600;
+            color: #333;
+            min-width: 120px;
+        }
+
+        .config-row input, .config-row select {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            min-width: 200px;
+        }
+
+        .config-row input:focus, .config-row select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .avatar.listening {
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+        }
+
+        .avatar.speaking {
+            animation: speak 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            70% { box-shadow: 0 0 0 30px rgba(102, 126, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+        }
+
+        @keyframes speak {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            min-height: 40px;
+        }
+
+        .status.listening { color: #667eea; }
+        .status.speaking { color: #764ba2; }
+
+        .transcript-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            min-height: 80px;
+            text-align: left;
+        }
+
+        .transcript-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .transcript-text {
+            font-size: 1.3rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .transcript-text.user {
+            color: #667eea;
+        }
+
+        .response-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: left;
+            border-left: 5px solid #667eea;
+        }
+
+        .response-text {
+            font-size: 1.4rem;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .main-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .main-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.5);
+        }
+
+        .main-button:active {
+            transform: scale(0.98);
+        }
+
+        .main-button .icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .main-button.listening {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        .quick-commands {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .quick-btn {
+            padding: 20px 15px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .quick-btn .emoji {
+            font-size: 2rem;
+        }
+
+        .features-demo {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .features-demo h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .weather-widget {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .weather-widget.show {
+            display: block;
+        }
+
+        .weather-widget h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .weather-temp {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .weather-details {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .medication-widget {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .medication-widget.show {
+            display: block;
+        }
+
+        .med-item {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .motivation-widget {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            text-align: center;
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .motivation-widget.show {
+            display: block;
+        }
+
+        .motivation-widget .quote {
+            font-size: 1.5rem;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .motivation-widget .author {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .error-message {
+            background: #ffe0e0;
+            color: #c00;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        footer {
+            margin-top: 30px;
+            color: rgba(255,255,255,0.7);
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .main-button { width: 150px; height: 150px; }
+            .main-button .icon { font-size: 3rem; }
+            .main-button span { font-size: 1.2rem; }
+            .quick-commands { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 ElderCare AI</h1>
+        <p class="subtitle">Tu asistente personal inteligente</p>
+
+        <!-- Panel de configuración -->
+        <div class="config-panel">
+            <h3>⚙️ Configuración Personal</h3>
+            <div class="config-row">
+                <label>👤 Nombre:</label>
+                <input type="text" id="userName" placeholder="Ej: Antonio" value="">
+            </div>
+            <div class="config-row">
+                <label>📍 Ciudad:</label>
+                <input type="text" id="userCity" placeholder="Ej: Burgos" value="Burgos">
+            </div>
+            <div class="config-row">
+                <label>🗣️ Voz:</label>
+                <select id="voiceSelect"></select>
+            </div>
+            <div class="config-row">
+                <label>🔊 Velocidad:</label>
+                <select id="speedSelect">
+                    <option value="0.7">Lenta</option>
+                    <option value="0.85" selected>Normal</option>
+                    <option value="1">Rápida</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tarjeta principal -->
+        <div class="main-card">
+            <div class="avatar" id="avatar">🧓</div>
+            
+            <div class="status" id="status">Pulsa el botón para hablarme</div>
+
+            <div class="error-message" id="errorMsg"></div>
+
+            <div class="transcript-box">
+                <div class="transcript-label">🎤 Lo que has dicho:</div>
+                <div class="transcript-text user" id="userTranscript">...</div>
+            </div>
+
+            <div class="response-box">
+                <div class="transcript-label">🤖 Mi respuesta:</div>
+                <div class="response-text" id="assistantResponse">¡Hola! Soy tu asistente ElderCare. Pulsa el botón grande para hablar conmigo o usa los botones rápidos de abajo.</div>
+            </div>
+
+            <button class="main-button" id="mainBtn" onclick="toggleListening()">
+                <span class="icon">🎤</span>
+                <span>HABLAR</span>
+            </button>
+
+            <!-- Comandos rápidos -->
+            <div class="quick-commands">
+                <button class="quick-btn" onclick="quickCommand('buenos días')">
+                    <span class="emoji">☀️</span>
+                    <span>Buenos días</span>
+                </button>
+                <button class="quick-btn" onclick="quickCommand('qué tiempo hace')">
+                    <span class="emoji">🌤️</span>
+                    <span>El tiempo</span>
+                </button>
+                <button class="quick-btn" onclick="quickCommand('mis medicinas')">
+                    <span class="emoji">💊</span>
+                    <span>Medicinas</span>
+                </button>
+                <button class="quick-btn" onclick="quickCommand('motivación')">
+                    <span class="emoji">💪</span>
+                    <span>Motivación</span>
+                </button>
+                <button class="quick-btn" onclick="quickCommand('qué día es hoy')">
+                    <span class="emoji">📅</span>
+                    <span>Fecha</span>
+                </button>
+                <button class="quick-btn" onclick="quickCommand('cuéntame un chiste')">
+                    <span class="emoji">😄</span>
+                    <span>Chiste</span>
+                </button>
+            </div>
+
+            <!-- Widgets dinámicos -->
+            <div class="features-demo">
+                <div class="weather-widget" id="weatherWidget">
+                    <h4>🌤️ El tiempo en <span id="weatherCity">Burgos</span></h4>
+                    <div class="weather-info">
+                        <div class="weather-temp" id="weatherTemp">12°C</div>
+                        <div class="weather-details" id="weatherDetails">
+                            Parcialmente nublado<br>
+                            Humedad: 65%<br>
+                            Viento: 15 km/h
+                        </div>
+                    </div>
+                </div>
+
+                <div class="medication-widget" id="medicationWidget">
+                    <h4>💊 Recordatorio de Medicación</h4>
+                    <div class="med-item">
+                        <span>🕘 9:00 - Omeprazol</span>
+                        <span>✅</span>
+                    </div>
+                    <div class="med-item">
+                        <span>🕐 14:00 - Enalapril</span>
+                        <span>⏳ Pendiente</span>
+                    </div>
+                    <div class="med-item">
+                        <span>🕘 21:00 - Simvastatina</span>
+                        <span>⏳ Pendiente</span>
+                    </div>
+                </div>
+
+                <div class="motivation-widget" id="motivationWidget">
+                    <div class="quote" id="motivationQuote">"Cada día es una nueva oportunidad para ser la mejor versión de ti mismo."</div>
+                    <div class="author">- Tu asistente ElderCare</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Demo ElderCare AI Assistant v1.0 | Funciona mejor en Chrome</p>
+            <p>Desarrollado para mejorar la vida de nuestros mayores ❤️</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+        let isListening = false;
+        let voices = [];
+
+        // Frases motivacionales
+        const motivationalQuotes = [
+            { quote: "Cada día es una nueva oportunidad para ser feliz.", author: "Tu asistente" },
+            { quote: "La edad es solo un número, lo que importa es cómo te sientes por dentro.", author: "Tu asistente" },
+            { quote: "Nunca es tarde para empezar algo nuevo o aprender algo diferente.", author: "Tu asistente" },
+            { quote: "Tu experiencia es un tesoro que puedes compartir con los demás.", author: "Tu asistente" },
+            { quote: "Hoy es el día perfecto para sonreír y disfrutar de las pequeñas cosas.", author: "Tu asistente" },
+            { quote: "La vida no se mide por las veces que respiras, sino por los momentos que te dejan sin aliento.", author: "Maya Angelou" },
+            { quote: "El secreto de la felicidad no es hacer siempre lo que quieres, sino querer siempre lo que haces.", author: "León Tolstói" },
+            { quote: "La gratitud convierte lo que tenemos en suficiente.", author: "Tu asistente" },
+            { quote: "Cada amanecer trae nuevas posibilidades. ¡Aprovéchalas!", author: "Tu asistente" },
+            { quote: "Tu sonrisa puede iluminar el día de alguien. Compártela generosamente.", author: "Tu asistente" }
+        ];
+
+        // Chistes
+        const jokes = [
+            "¿Por qué los pájaros no usan Facebook? Porque ya tienen Twitter. ¡Ja ja ja!",
+            "¿Qué le dice un semáforo a otro? No me mires que me estoy cambiando. ¡Ja ja!",
+            "¿Cuál es el colmo de un electricista? Que su mujer se llame Luz y sus hijos le sigan la corriente. ¡Ja ja ja!",
+            "¿Por qué el libro de matemáticas estaba triste? Porque tenía muchos problemas. ¡Ja ja!",
+            "¿Qué hace una abeja en el gimnasio? ¡Zum-ba! ¡Ja ja ja!",
+            "Doctor, doctor, me he roto el brazo en dos sitios. Pues no vaya a esos sitios. ¡Ja ja!",
+            "¿Qué le dice una iguana a su hermana gemela? Somos iguanitas. ¡Ja ja ja!"
+        ];
+
+        // Inicialización
+        window.onload = function() {
+            initSpeechRecognition();
+            loadVoices();
+            
+            // Cargar voces cuando estén disponibles
+            if (synthesis.onvoiceschanged !== undefined) {
+                synthesis.onvoiceschanged = loadVoices;
+            }
+        };
+
+        function loadVoices() {
+            voices = synthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            
+            // Filtrar voces en español
+            const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
+            
+            if (spanishVoices.length === 0) {
+                // Si no hay voces en español, mostrar todas
+                voices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    voiceSelect.appendChild(option);
+                });
+            } else {
+                spanishVoices.forEach((voice) => {
+                    const index = voices.indexOf(voice);
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${voice.name}`;
+                    // Preferir voces femeninas de España
+                    if (voice.lang === 'es-ES' && (voice.name.includes('female') || voice.name.includes('Mónica') || voice.name.includes('Microsoft Helena'))) {
+                        option.selected = true;
+                    }
+                    voiceSelect.appendChild(option);
+                });
+            }
+        }
+
+        function initSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showError('Tu navegador no soporta reconocimiento de voz. Por favor usa Google Chrome.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = function() {
+                isListening = true;
+                updateUI('listening');
+            };
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                document.getElementById('userTranscript').textContent = finalTranscript || interimTranscript || '...';
+
+                if (finalTranscript) {
+                    processCommand(finalTranscript.toLowerCase());
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Error de reconocimiento:', event.error);
+                if (event.error === 'not-allowed') {
+                    showError('Por favor, permite el acceso al micrófono en tu navegador.');
+                }
+                stopListening();
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                updateUI('idle');
+            };
+        }
+
+        function toggleListening() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+
+        function startListening() {
+            if (recognition) {
+                // Detener cualquier síntesis de voz en curso
+                synthesis.cancel();
+                recognition.start();
+            }
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+
+        function updateUI(state) {
+            const avatar = document.getElementById('avatar');
+            const status = document.getElementById('status');
+            const mainBtn = document.getElementById('mainBtn');
+
+            avatar.className = 'avatar ' + state;
+            status.className = 'status ' + state;
+            
+            if (state === 'listening') {
+                status.textContent = '🎤 Te escucho... habla ahora';
+                mainBtn.classList.add('listening');
+                mainBtn.innerHTML = '<span class="icon">🔴</span><span>ESCUCHANDO</span>';
+            } else if (state === 'speaking') {
+                status.textContent = '🔊 Respondiendo...';
+                mainBtn.classList.remove('listening');
+                mainBtn.innerHTML = '<span class="icon">🔊</span><span>HABLANDO</span>';
+            } else {
+                status.textContent = 'Pulsa el botón para hablarme';
+                mainBtn.classList.remove('listening');
+                mainBtn.innerHTML = '<span class="icon">🎤</span><span>HABLAR</span>';
+            }
+        }
+
+        function quickCommand(command) {
+            document.getElementById('userTranscript').textContent = command;
+            processCommand(command.toLowerCase());
+        }
+
+        function processCommand(text) {
+            hideAllWidgets();
+            let response = '';
+            const userName = document.getElementById('userName').value || 'amigo';
+            const userCity = document.getElementById('userCity').value || 'tu ciudad';
+            const now = new Date();
+            const hour = now.getHours();
+
+            // Determinar saludo según hora
+            let greeting = '';
+            if (hour < 12) greeting = 'Buenos días';
+            else if (hour < 20) greeting = 'Buenas tardes';
+            else greeting = 'Buenas noches';
+
+            // Procesar comandos
+            if (text.includes('buenos días') || text.includes('buenas tardes') || text.includes('buenas noches') || text.includes('hola')) {
+                const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                response = `¡${greeting}, ${userName}! Me alegra mucho escucharte. ¿Sabes qué? ${quote.quote} ¿En qué puedo ayudarte hoy?`;
+                showMotivation(quote);
+            }
+            else if (text.includes('tiempo') || text.includes('clima') || text.includes('temperatura')) {
+                response = `El tiempo en ${userCity} hoy: Tenemos unos 12 grados con cielo parcialmente nublado. La humedad está al 65% y hay algo de viento. Te recomiendo llevar una chaqueta si sales. ¿Necesitas algo más?`;
+                showWeather(userCity);
+            }
+            else if (text.includes('medicina') || text.includes('medicación') || text.includes('pastilla')) {
+                response = `${userName}, aquí tienes tu recordatorio de medicación. A las 9 de la mañana el Omeprazol, que ya está tomado. A las 2 de la tarde el Enalapril, que está pendiente. Y a las 9 de la noche la Simvastatina. ¿Quieres que te recuerde cuando llegue la hora?`;
+                showMedication();
+            }
+            else if (text.includes('motivación') || text.includes('ánimo') || text.includes('motívame') || text.includes('anímame')) {
+                const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                response = `${userName}, escucha esto: ${quote.quote}. Recuerda que cada día que despiertas es un regalo. Tienes sabiduría, experiencia y mucho que ofrecer. ¡Tú puedes con todo!`;
+                showMotivation(quote);
+            }
+            else if (text.includes('día') || text.includes('fecha') || text.includes('hoy')) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const fecha = now.toLocaleDateString('es-ES', options);
+                response = `Hoy es ${fecha}. `;
+                
+                // Añadir santoral simulado
+                const santos = ['Santa Lucía', 'San Juan de la Cruz', 'Nuestra Señora de Guadalupe'];
+                const santo = santos[Math.floor(Math.random() * santos.length)];
+                response += `Es el día de ${santo}. ¿Tienes algún plan especial para hoy?`;
+            }
+            else if (text.includes('chiste') || text.includes('hazme reír') || text.includes('gracioso')) {
+                const joke = jokes[Math.floor(Math.random() * jokes.length)];
+                response = `Vale, ${userName}, ahí va uno: ${joke} ¿Quieres que te cuente otro?`;
+            }
+            else if (text.includes('hora')) {
+                const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                response = `Son las ${hora}. ¿Necesitas que te recuerde algo a alguna hora?`;
+            }
+            else if (text.includes('gracias')) {
+                response = `¡De nada, ${userName}! Para eso estoy aquí, para ayudarte en lo que necesites. Ha sido un placer.`;
+            }
+            else if (text.includes('cómo estás') || text.includes('qué tal')) {
+                response = `¡Muy bien, ${userName}! Siempre contento de poder ayudarte. ¿Y tú cómo te encuentras hoy?`;
+            }
+            else if (text.includes('adiós') || text.includes('hasta luego') || text.includes('chao')) {
+                response = `¡Hasta pronto, ${userName}! Ha sido un placer charlar contigo. Cuídate mucho y recuerda que aquí estaré cuando me necesites. ¡Un abrazo!`;
+            }
+            else if (text.includes('quién eres') || text.includes('qué eres')) {
+                response = `Soy ElderCare, tu asistente personal inteligente. Estoy aquí para ayudarte con el tiempo, recordarte tus medicinas, darte ánimos, contarte chistes, y mucho más. ¿En qué puedo ayudarte?`;
+            }
+            else if (text.includes('ayuda') || text.includes('qué puedes hacer')) {
+                response = `Puedo hacer muchas cosas por ti, ${userName}. Puedo decirte el tiempo, recordarte tus medicinas, darte frases motivacionales, contarte chistes, decirte la fecha y la hora, y charlar contigo. Solo tienes que preguntarme.`;
+            }
+            else {
+                response = `Entiendo, ${userName}. Has dicho: "${text}". Aunque todavía estoy aprendiendo, puedo ayudarte con el tiempo, tus medicinas, darte ánimos o contarte un chiste. ¿Qué te apetece?`;
+            }
+
+            // Mostrar y hablar respuesta
+            document.getElementById('assistantResponse').textContent = response;
+            speak(response);
+        }
+
+        function speak(text) {
+            updateUI('speaking');
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voiceIndex = document.getElementById('voiceSelect').value;
+            const speed = parseFloat(document.getElementById('speedSelect').value);
+            
+            if (voices[voiceIndex]) {
+                utterance.voice = voices[voiceIndex];
+            }
+            
+            utterance.rate = speed;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            utterance.onend = function() {
+                updateUI('idle');
+            };
+
+            utterance.onerror = function(event) {
+                console.error('Error de síntesis:', event);
+                updateUI('idle');
+            };
+
+            synthesis.speak(utterance);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideAllWidgets() {
+            document.getElementById('weatherWidget').classList.remove('show');
+            document.getElementById('medicationWidget').classList.remove('show');
+            document.getElementById('motivationWidget').classList.remove('show');
+        }
+
+        function showWeather(city) {
+            document.getElementById('weatherCity').textContent = city;
+            document.getElementById('weatherWidget').classList.add('show');
+        }
+
+        function showMedication() {
+            document.getElementById('medicationWidget').classList.add('show');
+        }
+
+        function showMotivation(quote) {
+            document.getElementById('motivationQuote').textContent = `"${quote.quote}"`;
+            document.getElementById('motivationWidget').classList.add('show');
+        }
+    </script>
+</body>
+</html>
